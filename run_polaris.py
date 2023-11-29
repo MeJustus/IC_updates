@@ -13,10 +13,13 @@ from polarislib.runs.convergence.convergence_callback_functions import (
     default_pre_loop_fn,
 )
 
+import h5py
+import pylab
 import casadi as cs
 import numpy as np
 from scipy.optimize import least_squares
 from matplotlib import pyplot as plt
+
 
 lista_tts = []
 
@@ -51,6 +54,18 @@ def set_splits(dic_with_splits, supply_path):
                 conn.execute(f"update timing_nested_records set value_minimum={split}, value_maximum={split} where object_id={object_id} and value_phase={p+1}")
     conn.commit()
     conn.close()
+    
+def obter_volumes(caminho_resultado, link_uid_list):
+    f = h5py.File(caminho_resultado)
+    link_volumes = f["link_moe"]["link_out_volume"][:]
+    link_uids = f["link_moe"]["link_uids"][:]
+    f.close()
+    all_volumes = []
+    for link_uid in link_uid_list:
+        idx = np.where(link_uids == link_uid)[1][0]
+        volumes = link_volumes[:, idx]
+        all_volumes.append(volumes)
+    return all_volumes
 
 def m(x, beta):
     return beta[0] + beta[1] * x[0] + beta[2] * x[1] + beta[3] * x[0] ** 2 \
@@ -91,8 +106,10 @@ def fun(beta_k):
     return f
 
 if __name__ == '__main__':
-    project_dir = Path("C:/Users/User/Desktop/IC")
-    polaris_binary = "C:/Users/User/Desktop/POLARIS-Bloomington-Distributable-20230907/polarisbin/Integrated_Model.exe"
+    project_dir = Path("C:/Users/maria/Desktop/rede_pequena")
+    polaris_binary = "C:/Users/maria/Desktop/POLARIS-Bloomington-Distributable-20230907/polarisbin/Integrated_Model.exe"
+    
+    
     # tts = run_for_splits(polaris_binary, project_dir, {10417: [8, 29, 8, 22]})
     # lista_tts.append(tts)
     # print("tts is", tts)
@@ -147,12 +164,13 @@ if __name__ == '__main__':
     # are given such that 0 < eta_1 < 1, 0 < gamma < 1 < gamma_inc, epsilon_c > 0,
     # 0 < tau_bar < 1, 0 < d_bar < Delta_max, u_bar \in N*. Set the total number of
     # simulation runs permitted (across all points) 
-    n_max = 3
+    n_max = 2
     # this determines the  computation budget.
 
     #Set the number of simulation replications per point r (defined in
     # Equation (2)).
     r = 1
+    contador = 0
 
     # Set
     k = 0
@@ -177,7 +195,17 @@ if __name__ == '__main__':
     # Compute T and f_hat at x_0, fit an initial model m_0 (i.e., compute v_0).
     # We are not using T, computing f_hat
     f_hat_0 = run_for_splits(polaris_binary, project_dir, {10417: [8, x_0[0]*C, 8, x_0[1]*C]})
+    contador = contador + 1
     lista_tts.append(f_hat_0)
+    
+    caminho = "C:/Users/maria/Desktop/rede_pequena/Campo_traffic{}/Campo-Result.h5".format(contador)
+    todos_volumes = obter_volumes(caminho, [27617, 27157])
+    for volume in todos_volumes:
+            pylab.plot(volume)
+    
+    pylab.show()
+    
+    
     f_hat_k = np.zeros((1, 1))
     f_hat_k[0, 0] = f_hat_0
     f_hat_n_k = f_hat_k # all evaluations of  f_hat to avoid re-evaluations at fun
@@ -221,10 +249,27 @@ if __name__ == '__main__':
         # Compute 
         
         f_hat_x_k_s_k = run_for_splits(polaris_binary, project_dir, {10417: [8, x_k_s_k[0]*C, 8, x_k_s_k[1]*C]})
+        contador = contador + 1
+        caminho = "C:/Users/maria/Desktop/rede_pequena/Campo_traffic{}/Campo-Result.h5".format(contador)
+        todos_volumes = obter_volumes(caminho, [27617, 27157])
+        for volume in todos_volumes:
+            pylab.plot(volume)
+    
+        pylab.show()
 
         # and 
         
         f_hat_x_k = run_for_splits(polaris_binary, project_dir, {10417: [8, x_k[k,0]*C, 8, x_k[k,1]*C]})
+        contador = contador + 1
+        
+        caminho = "C:/Users/maria/Desktop/rede_pequena/Campo_traffic{}/Campo-Result.h5".format(contador)
+        todos_volumes = obter_volumes(caminho, [27617, 27157])
+        for volume in todos_volumes:
+             pylab.plot(volume)
+    
+        pylab.show()
+        
+        
         rho_k = np.vstack((rho_k, (f_hat_x_k - f_hat_x_k_s_k) / \
                         (m(x_k[k, :], beta_k[k, :]) - m(x_k_s_k, beta_k[k, :]))))
 
@@ -241,6 +286,7 @@ if __name__ == '__main__':
         
         # Include the new observation in the set of sampled points
         n_k[k, :] = n_k[k, :] + r
+        
         x_n_k = np.vstack((x_n_k, x_k_s_k))
         f_hat_n_k = np.vstack((f_hat_n_k, f_hat_x_k_s_k))
         
@@ -264,6 +310,15 @@ if __name__ == '__main__':
             new_x = np.array([g, 1 - g]) 
             # Evaluate T and f_hat at x. (we evaluate only f_hat)
             f_hat_new_x = run_for_splits(polaris_binary, project_dir, {10417: [8, new_x[0]*C, 8, new_x[1]*C]})
+            contador = contador + 1
+            
+            caminho = "C:/Users/maria/Desktop/rede_pequena/Campo_traffic{}/Campo-Result.h5".format(contador)
+            todos_volumes = obter_volumes(caminho, [27617, 27157])
+            for volume in todos_volumes:
+                pylab.plot(volume)
+    
+            pylab.show()
+    
             lista_tts.append(f_hat_new_x)
             f_hat_n_k = np.vstack((f_hat_n_k, f_hat_new_x)) 
             # Include this new observation in the set of sampled points
@@ -305,6 +360,9 @@ if __name__ == '__main__':
         #else:
         #    pass # stop
         
+        
+        
+        
     #print('Done')
     #print('Delta_k', Delta_k)
     #print('x_n_k', x_n_k)
@@ -319,5 +377,5 @@ if __name__ == '__main__':
 
     plt.plot(range(len(x_n_k[:,0])), x_n_k[:,0])
     plt.plot(range(len(x_n_k[:,1])), x_n_k[:,1])
-
+    
     plt.show()
