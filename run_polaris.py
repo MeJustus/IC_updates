@@ -34,7 +34,6 @@ def compute_tts(out_dir):
     conn = sqlite3.connect(out_dir/"Campo-Demand.sqlite")
     tts = conn.execute("SELECT SUM(end-start) from trip").fetchone()[0]
     conn.close()
-    lista_tts.append(tts)
     return tts
 
 def set_splits(dic_with_splits, supply_path):
@@ -164,7 +163,7 @@ if __name__ == '__main__':
     # are given such that 0 < eta_1 < 1, 0 < gamma < 1 < gamma_inc, epsilon_c > 0,
     # 0 < tau_bar < 1, 0 < d_bar < Delta_max, u_bar \in N*. Set the total number of
     # simulation runs permitted (across all points) 
-    n_max = 2
+    n_max = 100
     # this determines the  computation budget.
 
     #Set the number of simulation replications per point r (defined in
@@ -198,10 +197,10 @@ if __name__ == '__main__':
     contador = contador + 1
     lista_tts.append(f_hat_0)
     
-    caminho = "C:/Users/maria/Desktop/rede_pequena/Campo_traffic{}/Campo-Result.h5".format(contador)
-    todos_volumes = obter_volumes(caminho, [27617, 27157])
-    for volume in todos_volumes:
-            pylab.plot(volume)
+    # caminho = "C:/Users/maria/Desktop/rede_pequena/Campo_traffic{}/Campo-Result.h5".format(contador)
+    # todos_volumes = obter_volumes(caminho, [27617, 27157])
+    # for volume in todos_volumes:
+    #         pylab.plot(volume)
     
     pylab.show()
     
@@ -250,24 +249,24 @@ if __name__ == '__main__':
         
         f_hat_x_k_s_k = run_for_splits(polaris_binary, project_dir, {10417: [8, x_k_s_k[0]*C, 8, x_k_s_k[1]*C]})
         contador = contador + 1
-        caminho = "C:/Users/maria/Desktop/rede_pequena/Campo_traffic{}/Campo-Result.h5".format(contador)
-        todos_volumes = obter_volumes(caminho, [27617, 27157])
-        for volume in todos_volumes:
-            pylab.plot(volume)
+        # caminho = "C:/Users/maria/Desktop/rede_pequena/Campo_traffic{}/Campo-Result.h5".format(contador)
+        # todos_volumes = obter_volumes(caminho, [27617, 27157])
+        # for volume in todos_volumes:
+        #     pylab.plot(volume)
     
-        pylab.show()
+        # pylab.show()
 
         # and 
         
         f_hat_x_k = run_for_splits(polaris_binary, project_dir, {10417: [8, x_k[k,0]*C, 8, x_k[k,1]*C]})
         contador = contador + 1
         
-        caminho = "C:/Users/maria/Desktop/rede_pequena/Campo_traffic{}/Campo-Result.h5".format(contador)
-        todos_volumes = obter_volumes(caminho, [27617, 27157])
-        for volume in todos_volumes:
-             pylab.plot(volume)
+        # caminho = "C:/Users/maria/Desktop/rede_pequena/Campo_traffic{}/Campo-Result.h5".format(contador)
+        # todos_volumes = obter_volumes(caminho, [27617, 27157])
+        # for volume in todos_volumes:
+        #      pylab.plot(volume)
     
-        pylab.show()
+        # pylab.show()
         
         
         rho_k = np.vstack((rho_k, (f_hat_x_k - f_hat_x_k_s_k) / \
@@ -312,12 +311,12 @@ if __name__ == '__main__':
             f_hat_new_x = run_for_splits(polaris_binary, project_dir, {10417: [8, new_x[0]*C, 8, new_x[1]*C]})
             contador = contador + 1
             
-            caminho = "C:/Users/maria/Desktop/rede_pequena/Campo_traffic{}/Campo-Result.h5".format(contador)
-            todos_volumes = obter_volumes(caminho, [27617, 27157])
-            for volume in todos_volumes:
-                pylab.plot(volume)
+            # caminho = "C:/Users/maria/Desktop/rede_pequena/Campo_traffic{}/Campo-Result.h5".format(contador)
+            # todos_volumes = obter_volumes(caminho, [27617, 27157])
+            # for volume in todos_volumes:
+            #     pylab.plot(volume)
     
-            pylab.show()
+            # pylab.show()
     
             lista_tts.append(f_hat_new_x)
             f_hat_n_k = np.vstack((f_hat_n_k, f_hat_new_x)) 
@@ -372,6 +371,8 @@ if __name__ == '__main__':
     #print('Webster:', f_hat([0.875, 0.125])) # algumas vezes se perde para esse cenário
     #print('Optimal:', f_hat(x_k[-1, :]))
 
+    print(np.shape(lista_tts))
+    print(np.shape(x_n_k))
     plt.plot(range(len(lista_tts)), lista_tts)
     plt.figure()
 
