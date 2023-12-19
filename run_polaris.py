@@ -163,7 +163,7 @@ if __name__ == '__main__':
     # are given such that 0 < eta_1 < 1, 0 < gamma < 1 < gamma_inc, epsilon_c > 0,
     # 0 < tau_bar < 1, 0 < d_bar < Delta_max, u_bar \in N*. Set the total number of
     # simulation runs permitted (across all points) 
-    n_max = 100
+    n_max = 1
     # this determines the  computation budget.
 
     #Set the number of simulation replications per point r (defined in
@@ -371,12 +371,21 @@ if __name__ == '__main__':
     #print('Webster:', f_hat([0.875, 0.125])) # algumas vezes se perde para esse cenário
     #print('Optimal:', f_hat(x_k[-1, :]))
 
-    print(np.shape(lista_tts))
-    print(np.shape(x_n_k))
+    array_tts = np.array(lista_tts)
+    matriz_tts = array_tts.reshape(len(lista_tts), 1)
+    
+    # print(np.shape(lista_tts))
+    # print(np.shape(x_n_k))
+    
     plt.plot(range(len(lista_tts)), lista_tts)
     plt.figure()
 
     plt.plot(range(len(x_n_k[:,0])), x_n_k[:,0])
     plt.plot(range(len(x_n_k[:,1])), x_n_k[:,1])
+    plt.figure()
+    
+    plt.scatter(x_n_k[:,0], matriz_tts)
+    plt.figure()
+    plt.scatter(x_n_k[:,1], matriz_tts)
     
     plt.show()
